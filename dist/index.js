@@ -1483,14 +1483,19 @@ function run() {
                 console.log('Running add patch notes...');
                 const { pull_request } = github.context.payload;
                 console.log('pull_request', JSON.stringify(pull_request));
-                const patchNoteRegex = /<!-- Patch Note Start -->\r*\n*(.+):\s?(.+)\r*\n*<!-- Patch Note End -->/;
-                const [_0, patchNoteType, patchNote] = patchNoteRegex.exec(pull_request.body) || [];
-                if (patchNoteType && patchNote) {
-                    console.log('Found patch note type:', patchNoteType);
-                    console.log('Found patch note:', patchNote);
-                    core.setOutput("type", patchNoteType);
-                    core.setOutput("patchNote", patchNote);
+                const patchNoteRegex = /<!-- Patch Note Start -->\r*\n*(.+):\s?(.+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*n\/ar*\n*<!-- Patch Note End -->/;
+                const [match, patchNoteType, patchNote] = patchNoteRegex.exec(pull_request.body) || [];
+                if (!match) {
+                    throw Error('Could not find patch note in the pull request body. Please use the format `n/a` or `{type}: {notes}`.');
                 }
+                if (match && (!patchNoteType || !patchNote)) {
+                    console.log('Found n/a, so no patch note is necessary.');
+                }
+                core.setOutput("type", patchNoteType);
+                core.setOutput("patchNote", patchNote);
+            }
+            else {
+                throw Error('This action must be run in a pull request event.');
             }
         }
         catch (error) {
