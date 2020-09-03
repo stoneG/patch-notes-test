@@ -5,6 +5,7 @@ import * as Webhooks from '@octokit/webhooks'
 async function run(): Promise<void> {
   try {
     if (github.context.eventName === 'pull_request') {
+      console.log('Running add patch notes...')
       const { pull_request } = github.context.payload as Webhooks.EventPayloads.WebhookPayloadPullRequest
       const patchNoteRegex = /<!-- Patch Note Start -->(.+):\s?(.+)<!-- Patch Note End -->/
       const [ _0, patchNoteType, patchNote ]= patchNoteRegex.exec(pull_request.body) || []
