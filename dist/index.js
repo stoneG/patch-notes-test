@@ -1482,6 +1482,8 @@ function run() {
             if (github.context.eventName === 'pull_request') {
                 console.log('Running add patch notes...');
                 const { pull_request } = github.context.payload;
+                console.log('pull_request', JSON.stringify(pull_request));
+                console.log('pull_request body', pull_request.body);
                 const patchNoteRegex = /<!-- Patch Note Start -->(.+):\s?(.+)<!-- Patch Note End -->/;
                 const [_0, patchNoteType, patchNote] = patchNoteRegex.exec(pull_request.body) || [];
                 if (patchNoteType && patchNote) {
