@@ -8,8 +8,7 @@ async function run(): Promise<void> {
       console.log('Running add patch notes...')
       const { pull_request } = github.context.payload as Webhooks.EventPayloads.WebhookPayloadPullRequest
       console.log('pull_request', JSON.stringify(pull_request))
-      console.log('pull_request body', pull_request.body)
-      const patchNoteRegex = /<!-- Patch Note Start -->(.+):\s?(.+)<!-- Patch Note End -->/
+      const patchNoteRegex = /<!-- Patch Note Start -->\n*(.+):\s?(.+)\n*<!-- Patch Note End -->/
       const [ _0, patchNoteType, patchNote ]= patchNoteRegex.exec(pull_request.body) || []
       if (patchNoteType && patchNote) {
         console.log('Found patch note type:', patchNoteType)
