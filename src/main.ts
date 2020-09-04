@@ -8,7 +8,7 @@ async function run(): Promise<void> {
       console.log('Running add patch notes...')
       const { pull_request } = github.context.payload as Webhooks.EventPayloads.WebhookPayloadPullRequest
       console.log('pull_request', JSON.stringify(pull_request))
-      const patchNoteRegex = /<!-- Patch Note Start -->\r*\n*([a-z]+)\(?([a-z]+)\)?:\s?(.+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*n\/ar*\n*<!-- Patch Note End -->/
+      const patchNoteRegex = /<!-- Patch Note Start -->\r*\n*([a-z]+)(\([a-z]+\))?:\s?(.+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*n\/ar*\n*<!-- Patch Note End -->/
       const [ match, type, context, note ]= patchNoteRegex.exec(pull_request.body) || []
       if (!match) {
         throw Error('Could not find patch note in the pull request body. Please use the format `n/a` or `{type}: {notes}`.')
@@ -17,7 +17,7 @@ async function run(): Promise<void> {
         console.log('Found n/a, so no patch note is necessary.')
       }
       core.setOutput("type", type)
-      core.setOutput("context", context)
+      core.setOutput("context", context.slice(1, -1))
       core.setOutput("note", note)
     } else {
       throw Error('This action must be run in a pull request event.')
