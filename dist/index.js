@@ -1492,7 +1492,7 @@ function run() {
                     console.log('Found n/a, so no patch note is necessary.');
                 }
                 core.setOutput("type", type);
-                core.setOutput("context", context.slice(1, -1));
+                core.setOutput("context", context === null || context === void 0 ? void 0 : context.slice(1, -1));
                 core.setOutput("note", note);
             }
             else {

@@ -17,7 +17,7 @@ async function run(): Promise<void> {
         console.log('Found n/a, so no patch note is necessary.')
       }
       core.setOutput("type", type)
-      core.setOutput("context", context.slice(1, -1))
+      core.setOutput("context", context?.slice(1, -1))
       core.setOutput("note", note)
     } else {
       throw Error('This action must be run in a pull request event.')
