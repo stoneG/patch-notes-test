@@ -1482,17 +1482,30 @@ function run() {
             if (github.context.eventName === 'pull_request') {
                 console.log('Running add patch notes...');
                 const { pull_request } = github.context.payload;
-                const patchNoteRegex = /<!-- Patch Note Start -->\r*\n*([a-z]+)(\([a-z]+\))?:\s?(.+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*n\/a\r*\n*<!-- Patch Note End -->/;
-                const [match, type, context, note] = patchNoteRegex.exec(pull_request.body) || [];
+                const patchNotesRegex = /<!-- Patch Note Start -->\r*\n*([a-z\r\n\s:]+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*(n\/a)\r*\n*<!-- Patch Note End -->/;
+                const [match, patchNotes] = patchNotesRegex.exec(pull_request.body) || [];
                 if (!match) {
-                    throw Error('Could not find patch note in the pull request body. Please use the format `n/a` or `{type}: {notes}`.');
+                    throw Error('Could not find patch notes in the pull request body. Please use the format `n/a` or `{type}: {notes}`.');
                 }
-                if (match && (!type || !note)) {
-                    console.log('Found n/a, so no patch note is necessary.');
+                if (match && patchNotes === 'n/a') {
+                    console.log('Found n/a, so no patch notes are necessary.');
+                    core.setOutput("patchNotes", []);
+                    return;
                 }
-                core.setOutput("type", type);
-                core.setOutput("context", context === null || context === void 0 ? void 0 : context.slice(1, -1));
-                core.setOutput("note", note);
+                const results = [];
+                const patchNoteRegex = /^([a-z]+)(\([a-z]+\))?:\s?(.+)\./;
+                for (const patchNote of patchNotes.split('\r\n')) {
+                    const [match, type, context, body] = patchNoteRegex.exec(patchNote) || [];
+                    if (!match) {
+                        throw Error(`Malformed patch note (${patchNote}). Please use the format \`{type}: {notes}\`.`);
+                    }
+                    results.push({
+                        type,
+                        context: context === null || context === void 0 ? void 0 : context.slice(1, -1),
+                        body
+                    });
+                }
+                core.setOutput("patchNotes", results);
             }
             else {
                 throw Error('This action must be run in a pull request event.');
