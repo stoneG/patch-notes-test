@@ -1482,19 +1482,21 @@ function run() {
             if (github.context.eventName === 'pull_request') {
                 console.log('Running add patch notes...');
                 const { pull_request } = github.context.payload;
-                const patchNotesRegex = /<!-- Patch Note Start -->\r*\n*([a-z\r\n\s:]+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*(n\/a)\r*\n*<!-- Patch Note End -->/;
+                const patchNotesRegex = /<!-- Patch Note Start -->\r*\n*([\s\S]+)\r*\n*<!-- Patch Note End -->|<!-- Patch Note Start -->\r*\n*(n\/a)\r*\n*<!-- Patch Note End -->/;
                 const [match, patchNotes] = patchNotesRegex.exec(pull_request.body) || [];
                 if (!match) {
                     throw Error('Could not find patch notes in the pull request body. Please use the format `n/a` or `{type}: {notes}`.');
                 }
+                console.log('Found patch notes:', patchNotes);
                 if (match && patchNotes === 'n/a') {
                     console.log('Found n/a, so no patch notes are necessary.');
                     core.setOutput("patchNotes", []);
                     return;
                 }
                 const results = [];
-                const patchNoteRegex = /^([a-z]+)(\([a-z]+\))?:\s?(.+)\./;
-                for (const patchNote of patchNotes.split('\r\n')) {
+                const patchNoteRegex = /^([a-z]+)(\([a-z]+\))?:\s?(.+\.)/;
+                for (const patchNote of patchNotes.split(/\r?\n/).filter(x => x != '')) {
+                    console.log('Working on Patch Note:', patchNote);
                     const [match, type, context, body] = patchNoteRegex.exec(patchNote) || [];
                     if (!match) {
                         throw Error(`Malformed patch note (${patchNote}). Please use the format \`{type}: {notes}\`.`);
